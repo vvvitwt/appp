@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Language Learning App</title>
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+ 
+ <style>
+   body {
+     font-family: Arial, sans-serif;
+     background-image: url('wallpaper.jpg');
+     background-color: #f4f4f9;
+     background-size: cover;
+     background-repeat: no-repeat;
+     background-attachment: fixed;
+     margin: 0;
+     padding: 20px;
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+   }
+   
+   .card-container,
+   #difficultySelection {
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     margin: 20px 0;
+     background-color: rgba(255, 255, 255, 0.95);
+     padding: 20px;
+     border-radius: 10px;
+     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+     color: #333;
+   }
+   
+   .card {
+     width: 300px;
+     height: 200px;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     background-color: #ffffff;
+     border-radius: 10px;
+     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+     font-size: 1.5em;
+     margin-bottom: 20px;
+     color: #333;
+   }
+   
+   input[type="text"] {
+     padding: 10px;
+     font-size: 1em;
+     width: 200px;
+     margin-bottom: 10px;
+     border: 1px solid #ddd;
+     border-radius: 5px;
+   }
+   
+   .input-container {
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     margin-top: 20px;
+   }
+   
+   button {
+     padding: 10px 20px;
+     margin-block: 10px;
+     background-color: #007bff;
+     color: #ffffff;
+     border: none;
+     border-radius: 5px;
+     cursor: pointer;
+     transition: background-color 0.3s;
+   }
+   
+   button:hover {
+     background-color: #0056b3;
+   }
+   
+   .hidden {
+     display: none !important;
+   }
+   
+   #modal {
+     position: fixed;
+     top: 0;
+     left: 0;
+     width: 100%;
+     height: 100%;
+     background-color: rgba(0, 0, 0, 0.5);
+     display: flex;
+     justify-content: center;
+     align-items: center;
+     z-index: 1000;
+   }
+   
+   .modal-content {
+     background-color: #ffffff;
+     padding: 20px;
+     border-radius: 10px;
+     text-align: center;
+     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+     width: 80%;
+     max-width: 400px;
+     color: #333;
+   }
+ </style>
+</head>
+<body>
+
+ <div class="card-container hidden" id="gameContainer">
+   <div class="card" id="wordCard">apple</div>
+   <div class="controls">
+     <button id="prevButton">←</button>
+     <span id="step">0/10</span>
+     <button id="nextButton">→</button>
+   </div>
+   <div class="input-container">
+     <input type="text" id="translationInput" placeholder="Введіть переклад">
+     <button id="checkButton">Перевірити</button>
+   </div>
+   <div class="statistics">
+     <span class="correct">Вірно: <span id="correctCount">0</span></span>
+     <span class="incorrect">Невірно: <span id="incorrectCount">0</span></span>
+   </div>
+ </div>
+ 
+ <div id="difficultySelection">
+   <h2>Оберіть рівень складності</h2>
+   <button data-level="easy">Початковий</button>
+   <button data-level="medium">Середній</button>
+   <button data-level="hard">Високий</button>
+ </div>
+ 
+ <div id="modal" class="hidden">
+   <div class="modal-content">
+     <h2>Вітаю, ви пройшли рівень!</h2>
+     <button id="closeModal">Закрити</button>
+   </div>
+ </div>
+ 
+ <script>
+$(document).ready(function () {
+ const words = {
+   easy: [
+     { word: 'apple', translation: 'яблуко' },
+     { word: 'banana', translation: 'банан' },
+     { word: 'orange', translation: 'апельсин' },
+     { word: 'cherry', translation: 'вишня' },
+     { word: 'plum', translation: 'слива' },
+     { word: 'melon', translation: 'диня' },
+     { word: 'grape', translation: 'виноград' },
+     { word: 'lemon', translation: 'лимон' },
+     { word: 'peach', translation: 'персик' },
+     { word: 'pear', translation: 'груша' }
+   ],
+   medium: [
+     { word: 'watermelon', translation: 'кавун' },
+     { word: 'apricot', translation: 'абрикос' },
+     { word: 'fig', translation: 'інжир' },
+     { word: 'date', translation: 'фінік' },
+     { word: 'raspberry', translation: 'малина' },
+     { word: 'blueberry', translation: 'лохина' },
+     { word: 'berry', translation: 'ягода' },
+     { word: 'cucumber', translation: 'огірок' },
+     { word: 'carrot', translation: 'морква' },
+     { word: 'cabbage', translation: 'капуста' }
+   ],
+   hard: [
+     { word: 'asparagus', translation: 'спаржа' },
+     { word: 'broccoli', translation: 'броколі' },
+     { word: 'cauliflower', translation: 'цвітна капуста' },
+     { word: 'celery', translation: 'селера' },
+     { word: 'brussels sprouts', translation: 'брюссельська капуста' },
+     { word: 'eggplant', translation: 'баклажан' },
+     { word: 'radish', translation: 'редис' },
+     { word: 'onion', translation: 'цибуля' },
+     { word: 'potato', translation: 'картопля' },
+     { word: 'pumpkin', translation: 'гарбуз' }
+   ]
+ };
+ 
+ let currentLevel = [];
+ let currentWordIndex = 0;
+ let correctCount = 0;
+ let incorrectCount = 0;
+ 
+ function updateUI() {
+   if (currentWordIndex < currentLevel.length) {
+     $('#wordCard').text(currentLevel[currentWordIndex].word);
+     $('#step').text(`${currentWordIndex + 1}/${currentLevel.length}`);
+     $('#correctCount').text(correctCount);
+     $('#incorrectCount').text(incorrectCount);
+     $('#translationInput').val('');
+   } else {
+     showModal();
+   }
+ }
+ 
+ function showModal() {
+   $('#modal').removeClass('hidden');
+ }
+ 
+ function resetGame() {
+   currentWordIndex = 0;
+   correctCount = 0;
+   incorrectCount = 0;
+   $('#gameContainer').addClass('hidden');
+   $('#difficultySelection').removeClass('hidden');
+ }
+ 
+ $('#checkButton').on('click', function () {
+   const userTranslation = $('#translationInput').val().trim().toLowerCase();
+   const correctTranslation = currentLevel[currentWordIndex].translation.toLowerCase();
+ 
+   if (userTranslation === correctTranslation) {
+     correctCount++;
+   } else {
+     incorrectCount++;
+   }
+ 
+   currentWordIndex++;
+   updateUI();
+ });
+ 
+ $('#prevButton').on('click', function () {
+   if (currentWordIndex > 0) {
+     currentWordIndex--;
+     updateUI();
+   }
+ });
+ 
+ $('#nextButton').on('click', function () {
+   if (currentWordIndex < currentLevel.length - 1) {
+     currentWordIndex++;
+     updateUI();
+   }
+ });
+ 
+ $('#difficultySelection button').on('click', function () {
+   const level = $(this).data('level');
+   currentLevel = words[level];
+   $('#difficultySelection').addClass('hidden');
+   $('#gameContainer').removeClass('hidden');
+   updateUI();
+ });
+ 
+ $('#closeModal').on('click', function () {
+   $('#modal').addClass('hidden');
+   resetGame();
+ });
+});
+ </script>
+
+</body>
+</html>
